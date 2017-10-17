@@ -2,11 +2,20 @@ package com.hermes;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.support.SpringBootServletInitializer;
 
 @SpringBootApplication(scanBasePackages={"com.hermes", "model", "resources", "controllers"})
-public class HermesApplication {
+public class HermesApplication extends SpringBootServletInitializer {
 
-	public static void main(String[] args) {
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) 
+    {
+        return application.sources(HermesApplication.class);
+    }
+	
+	public static void main(String[] args) 
+	{
 		SpringApplication.run(HermesApplication.class, args);
 	}
 }

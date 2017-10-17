@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,16 +25,30 @@ public class MessageController {
 	
 	@Autowired
 	private MessageRepository rep;
+	
+	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+	@RequestMapping(path="/test")
+	public ResponseEntity<?> test()
+	{
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
 
 	@PreAuthorize("hasRole('ADMIN')")
-	@RequestMapping("/messages/")
-	public Iterable<Message> list()
+	@RequestMapping(path = "/messages/all/", produces = {"application/json"})
+	public ResponseEntity<?> list()
 	{
-		return rep.findAll();
+		List<Message> messages = (List<Message>) rep.findAll();
+		
+		if (null == messages)
+		{
+			return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+		}
+		
+		return new ResponseEntity<>(messages, HttpStatus.OK);
 	}
 	
 	@PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-	@RequestMapping("/{userId}/messages/")
+	@RequestMapping("/{userId}/messages/all/")
 	public ResponseEntity<?> listByUser(@PathVariable String userId)
 	{
 		List<Message> messages = rep.findByUsuario(userId);
@@ -140,4 +156,20 @@ public class MessageController {
 		
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@RequestMapping(path = "/messages", method = RequestMethod.GET)
+	public Page<Message> listAllByPage(Pageable pageable)
+	{
+		return rep.findAll(pageable);
+	}
+	
+	@PreAuthorize("hasRole('ADMIN')")
+	@RequestMapping("/{userId}/messages")
+	public Page<Message> listByUserPageable(@PathVariable String userId, Pageable pageable)
+	{
+		return rep.findByUsuario(userId, pageable);
+	}
+	
 }
+

@@ -1,17 +1,28 @@
 package com.hermes.model;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Transient;
+
+import org.springframework.data.jpa.convert.threeten.Jsr310JpaConverters.LocalDateTimeConverter;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 public class Message {
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@JsonProperty
 	private Long id;
 
 	private String message;
@@ -22,9 +33,25 @@ public class Message {
 
 	private boolean lida;
 	
+	@Convert(converter=LocalDateTimeConverter.class)
+	private LocalDateTime horarioCriacao;
+	
+	@Convert(converter=LocalDateTimeConverter.class)
+	private LocalDateTime horarioLida;
+	
+	@JsonIgnore
+	@Transient
+	private final DateTimeFormatter sdf = DateTimeFormatter.ofPattern("dd:MM:yyyy hh:mm:ss");
+	
+	public Message() 
+	{	
+		this.horarioCriacao = LocalDateTime.now();
+	}
+
 	public void read() 
 	{
 		this.lida = true;
+		this.horarioLida = LocalDateTime.now();
 	}
 	
 	public Long getId() {
@@ -62,6 +89,35 @@ public class Message {
 		this.lida = lida;
 	}
 	
+	@JsonProperty
+	public String horarioCriacaoFormatada()
+	{
+		return this.getHorarioCriacao().format(sdf); 
+	}
+	
+	@JsonProperty
+	public String horarioLidaFormatada()
+	{
+		if (null == this.horarioLida)
+			return "";
+		
+		return this.getHorarioLida().format(sdf); 
+	}
+	
+	public LocalDateTime getHorarioCriacao() {
+		return horarioCriacao;
+	}
+	public void setHorarioCriacao(LocalDateTime horarioCriacao) {
+		this.horarioCriacao = horarioCriacao;
+	}
+
+	public LocalDateTime getHorarioLida() {
+		return horarioLida;
+	}
+	public void setHorarioLida(LocalDateTime horarioLida) {
+		this.horarioLida = horarioLida;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
